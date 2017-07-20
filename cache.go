@@ -111,8 +111,13 @@ func (m CacheMap) Remove(key string) {
 // Removes an element from the map
 func (ms CacheMapShared) Remove(key string) {
 	ms.Lock()
-	delete(ms.items, key)
+	ms.remove(key)
 	ms.Unlock()
+}
+
+// Removes an element from the map
+func (ms CacheMapShared) remove(key string) {
+	delete(ms.items, key)
 }
 
 // Has checks to see if an item exists

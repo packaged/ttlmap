@@ -19,7 +19,7 @@ func (ms *CacheMapShared) Cleanup() {
 	ms.Lock()
 	for key, item := range ms.items {
 		if item.Expired() {
-			ms.Remove(key)
+			ms.remove(key)
 		}
 	}
 	ms.Unlock()
