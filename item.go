@@ -8,15 +8,18 @@ import (
 // Item represents a record in the map
 type Item struct {
 	sync.RWMutex
-	data    interface{}
-	ttl     time.Duration
-	expires *time.Time
+	data     interface{}
+	deadline time.Time
+	ttl      time.Duration
+	expires  *time.Time
 }
 
-func NewItem(value interface{}, duration time.Duration) *Item {
-	i := &Item{}
-	i.data = value
-	i.ttl = duration
+func newItem(value interface{}, duration time.Duration, deadline time.Time) *Item {
+	i := &Item{
+		data:     value,
+		ttl:      duration,
+		deadline: deadline,
+	}
 	expiry := time.Now().Add(duration)
 	i.expires = &expiry
 	return i
@@ -34,7 +37,7 @@ func (i *Item) Touch() {
 func (i *Item) Expired() bool {
 	var value bool
 	i.RLock()
-	if i.expires == nil {
+	if i.expires == nil || i.deadline.Before(time.Now()) {
 		value = true
 	} else {
 		value = i.expires.Before(time.Now())

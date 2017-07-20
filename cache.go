@@ -57,7 +57,7 @@ func (m CacheMap) MSet(data map[string]interface{}, duration time.Duration) {
 	for key, value := range data {
 		shard := m.GetShard(key)
 		shard.Lock()
-		shard.items[key] = NewItem(value, duration)
+		shard.items[key] = newItem(value, duration, time.Now().Add(m.options.maxLifetime))
 		shard.Unlock()
 	}
 }
@@ -70,7 +70,7 @@ func (m CacheMap) Set(key string, value interface{}, duration *time.Duration) {
 	if duration == nil {
 		duration = &m.options.defaultCacheDuration
 	}
-	shard.items[key] = NewItem(value, *duration)
+	shard.items[key] = newItem(value, *duration, time.Now().Add(m.options.maxLifetime))
 	shard.Unlock()
 }
 

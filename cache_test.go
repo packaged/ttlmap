@@ -51,3 +51,28 @@ func TestGet(t *testing.T) {
 		t.Errorf("Expected empty cache to return no data")
 	}
 }
+
+func TestMaxLifetime(t *testing.T) {
+	cache := ttlmap.New(ttlmap.WithMaxLifetime(time.Millisecond * 100))
+
+	data, exists := cache.Get("hello")
+	if exists || data != nil {
+		t.Errorf("Expected empty cache to return no data")
+	}
+
+	cache.Set("hello", "world", nil)
+	data, exists = cache.Get("hello")
+	if !exists {
+		t.Errorf("Expected cache to return data for `hello`")
+	}
+	if data.(string) != "world" {
+		t.Errorf("Expected cache to return `world` for `hello`")
+	}
+
+	//Check to see if max lifetime has killed the item
+	time.Sleep(time.Millisecond * 200)
+	data, exists = cache.Get("hello")
+	if exists || data != nil {
+		t.Errorf("Expected empty cache to return no data")
+	}
+}
