@@ -16,13 +16,13 @@ func (ms *CacheMapShared) Flush() {
 
 //Cleanup removes any expired items from the cache map
 func (ms *CacheMapShared) Cleanup() {
-	ms.RLock()
+	ms.Lock()
 	for key, item := range ms.items {
 		if item.Expired() {
 			ms.Remove(key)
 		}
 	}
-	ms.RUnlock()
+	ms.Unlock()
 }
 
 func (ms *CacheMapShared) initCleanup(dur time.Duration) {
