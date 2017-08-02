@@ -76,3 +76,23 @@ func TestMaxLifetime(t *testing.T) {
 		t.Errorf("Expected empty cache to return no data")
 	}
 }
+
+func TestItems(t *testing.T) {
+	dur := time.Millisecond * 100
+
+	cache := ttlmap.New()
+	cache.Set("item1", "one", nil)
+	cache.Set("item2", "two", nil)
+	cache.Set("item3", "three", &dur)
+	cache.Set("item4", "four", nil)
+
+	if len(cache.Items()) != 4 {
+		t.Errorf("Expected cache to return 4 items")
+	}
+
+	time.Sleep(dur)
+
+	if len(cache.Items()) != 3 {
+		t.Errorf("Expected cache to return 3 items after cache expiry")
+	}
+}
