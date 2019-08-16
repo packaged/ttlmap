@@ -67,17 +67,18 @@ func (m CacheMap) Set(key string, value interface{}, duration *time.Duration) {
 	// Get map shard.
 	shard := m.GetShard(key)
 	shard.Lock()
+	defer shard.Unlock()
 	if duration == nil {
 		duration = &m.options.defaultCacheDuration
 	}
 	shard.items[key] = newItem(value, *duration, time.Now().Add(m.options.maxLifetime))
-	shard.Unlock()
 }
 
 // Retrieves an item from the map with the given key, and optionally increase its expiry time if found
 func (m CacheMap) TouchGet(key string, touch bool) (interface{}, bool) {
 	shard := m.GetShard(key)
 	shard.RLock()
+	defer shard.RUnlock()
 	// Get item from shard.
 	val, ok := shard.items[key]
 	var ret interface{}
@@ -91,7 +92,6 @@ func (m CacheMap) TouchGet(key string, touch bool) (interface{}, bool) {
 			ret = val.GetValue()
 		}
 	}
-	shard.RUnlock()
 	return ret, ok
 }
 
@@ -111,8 +111,8 @@ func (m CacheMap) Remove(key string) {
 // Removes an element from the map
 func (ms CacheMapShared) Remove(key string) {
 	ms.Lock()
+	defer ms.Unlock()
 	ms.remove(key)
-	ms.Unlock()
 }
 
 // Removes an element from the map
@@ -124,22 +124,18 @@ func (ms CacheMapShared) remove(key string) {
 func (m CacheMap) Has(key string) bool {
 	shard := m.GetShard(key)
 	shard.RLock()
+	defer shard.RUnlock()
 	val, ok := shard.items[key]
-	if ok && val.Expired() {
-		ok = false
-	}
-	shard.RUnlock()
-	return ok
+	return ok && !val.Expired()
 }
 
 func (m CacheMap) GetExpiry(key string) *time.Time {
 	shard := m.GetShard(key)
 	shard.RLock()
+	defer shard.RUnlock()
 	var expiry *time.Time
-	val, ok := shard.items[key]
-	if ok {
+	if val, ok := shard.items[key]; ok {
 		expiry = val.expires
 	}
-	shard.RUnlock()
 	return expiry
 }

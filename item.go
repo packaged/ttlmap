@@ -28,21 +28,21 @@ func newItem(value interface{}, duration time.Duration, deadline time.Time) *Ite
 //Touch increases the expiry time on the item by the TTL
 func (i *Item) Touch() {
 	i.Lock()
+	defer i.Unlock()
 	expiration := time.Now().Add(i.ttl)
 	i.expires = &expiration
-	i.Unlock()
 }
 
 //Expired returns if the item has passed its expiry time
 func (i *Item) Expired() bool {
 	var value bool
 	i.RLock()
+	defer i.RUnlock()
 	if i.expires == nil || i.deadline.Before(time.Now()) {
 		value = true
 	} else {
 		value = i.expires.Before(time.Now())
 	}
-	i.RUnlock()
 	return value
 }
 

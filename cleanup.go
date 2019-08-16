@@ -10,19 +10,19 @@ func (m CacheMap) Flush() {
 
 func (ms *CacheMapShared) Flush() {
 	ms.Lock()
+	defer ms.Unlock()
 	ms.items = make(map[string]*Item)
-	ms.Unlock()
 }
 
 //Cleanup removes any expired items from the cache map
 func (ms *CacheMapShared) Cleanup() {
 	ms.Lock()
+	defer ms.Unlock()
 	for key, item := range ms.items {
 		if item.Expired() {
 			ms.remove(key)
 		}
 	}
-	ms.Unlock()
 }
 
 func (ms *CacheMapShared) initCleanup(dur time.Duration) {
