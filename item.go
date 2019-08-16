@@ -50,3 +50,14 @@ func (i *Item) Expired() bool {
 func (i *Item) GetValue() interface{} {
 	return i.data
 }
+
+func (i *Item) GetExpiry() time.Time {
+	if i.expires == nil {
+		return i.deadline
+	}
+	return *i.expires
+}
+
+func (i *Item) GetDeadline() time.Time {
+	return i.deadline
+}

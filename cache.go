@@ -100,6 +100,22 @@ func (m CacheMap) Get(key string) (interface{}, bool) {
 	return m.TouchGet(key, true)
 }
 
+// Retrieves an item from the map with the given key, and increase its expiry time if found
+func (m CacheMap) GetItem(key string) (*Item, bool) {
+	shard := m.GetShard(key)
+	shard.RLock()
+	if val, ok := shard.items[key]; ok {
+		return &Item{
+			data:     val.data,
+			deadline: val.deadline,
+			ttl:      val.ttl,
+			expires:  val.expires,
+		}, true
+	}
+	shard.RUnlock()
+	return nil, false
+}
+
 // Removes an element from the map
 func (m CacheMap) Remove(key string) {
 	shard := m.GetShard(key)
