@@ -104,6 +104,7 @@ func (m CacheMap) Get(key string) (interface{}, bool) {
 func (m CacheMap) GetItem(key string) (*Item, bool) {
 	shard := m.GetShard(key)
 	shard.RLock()
+	defer shard.RUnlock()
 	if val, ok := shard.items[key]; ok {
 		return &Item{
 			data:     val.data,
@@ -112,7 +113,6 @@ func (m CacheMap) GetItem(key string) (*Item, bool) {
 			expires:  val.expires,
 		}, true
 	}
-	shard.RUnlock()
 	return nil, false
 }
 

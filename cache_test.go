@@ -1,8 +1,8 @@
 package ttlmap_test
 
 import (
-	"testing"
 	"github.com/packaged/ttlmap"
+	"testing"
 	"time"
 )
 
