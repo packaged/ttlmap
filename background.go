@@ -36,10 +36,10 @@ func (km *keyMutex) Lock(key string) bool {
 }
 
 func (m CacheMap) BackgroundUpdate(key string, updater func() (interface{}, error)) {
-	//Lock the key from writes
+	// Lock the key from writes
 	locked := backgroundMutex.Lock(key)
 	if locked {
-		//Defer release write lock
+		// Defer release write lock
 		defer backgroundMutex.Unlock(key)
 		value, err := updater()
 		if err == nil {

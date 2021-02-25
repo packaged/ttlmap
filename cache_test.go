@@ -23,28 +23,28 @@ func TestGet(t *testing.T) {
 		t.Errorf("Expected cache to return `world` for `hello`")
 	}
 
-	//Check to see if cleanup is clearing unexpired items
+	// Check to see if cleanup is clearing unexpired items
 	time.Sleep(time.Millisecond * 200)
 	data, exists = cache.Get("hello")
 	if !exists || data == nil {
 		t.Errorf("Expected cache to return data")
 	}
 
-	//Check Cache is re-touching after a get
+	// Check Cache is re-touching after a get
 	time.Sleep(time.Millisecond * 200)
 	data, exists = cache.Get("hello")
 	if !exists || data == nil {
 		t.Errorf("Expected cache to return data")
 	}
 
-	//Check Cache is optionally re-touching after a get
+	// Check Cache is optionally re-touching after a get
 	time.Sleep(time.Millisecond * 200)
 	data, exists = cache.TouchGet("hello", false)
 	if !exists || data == nil {
 		t.Errorf("Expected cache to return data")
 	}
 
-	//Make sure cache clears after expiry
+	// Make sure cache clears after expiry
 	time.Sleep(time.Millisecond * 200)
 	data, exists = cache.Get("hello")
 	if exists || data != nil {
@@ -69,7 +69,7 @@ func TestMaxLifetime(t *testing.T) {
 		t.Errorf("Expected cache to return `world` for `hello`")
 	}
 
-	//Check to see if max lifetime has killed the item
+	// Check to see if max lifetime has killed the item
 	time.Sleep(time.Millisecond * 200)
 	data, exists = cache.Get("hello")
 	if exists || data != nil {

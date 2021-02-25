@@ -14,7 +14,7 @@ func (ms *CacheMapShared) Flush() {
 	ms.Unlock()
 }
 
-//Cleanup removes any expired items from the cache map
+// Cleanup removes any expired items from the cache map
 func (ms *CacheMapShared) Cleanup() {
 	ms.Lock()
 	for key, item := range ms.items {

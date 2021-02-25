@@ -25,7 +25,7 @@ func newItem(value interface{}, duration time.Duration, deadline time.Time) *Ite
 	return i
 }
 
-//Touch increases the expiry time on the item by the TTL
+// Touch increases the expiry time on the item by the TTL
 func (i *Item) Touch() {
 	i.Lock()
 	expiration := time.Now().Add(i.ttl)
@@ -33,7 +33,7 @@ func (i *Item) Touch() {
 	i.Unlock()
 }
 
-//Expired returns if the item has passed its expiry time
+// Expired returns if the item has passed its expiry time
 func (i *Item) Expired() bool {
 	var value bool
 	i.RLock()
@@ -46,7 +46,7 @@ func (i *Item) Expired() bool {
 	return value
 }
 
-//GetValue represents the value of the item in the map
+// GetValue represents the value of the item in the map
 func (i *Item) GetValue() interface{} {
 	return i.data
 }
