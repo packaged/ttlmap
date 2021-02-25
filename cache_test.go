@@ -96,3 +96,32 @@ func TestItems(t *testing.T) {
 		t.Errorf("Expected cache to return 3 items after cache expiry")
 	}
 }
+
+func TestCleanup(t *testing.T) {
+	dur := time.Millisecond * 100
+
+	cleanup := 0
+
+	cache := ttlmap.New(ttlmap.WithCleanupDuration(time.Millisecond * 5))
+
+	cache.SetWithCleanup("item1", "one", nil, func(item *ttlmap.Item) { cleanup++ })
+
+	if cleanup != 0 {
+		t.Errorf("Cache item cleaned up too early")
+	}
+
+	cache.Remove("item1")
+
+	if cleanup != 1 {
+		t.Errorf("Cache item cleanup not called on Remove")
+	}
+
+	cache.SetWithCleanup("item2", "two", &dur, func(item *ttlmap.Item) { cleanup++ })
+	time.Sleep(dur)
+	// Wait a few more milliseconds for cleanup to run
+	time.Sleep(time.Millisecond * 20)
+
+	if cleanup != 2 {
+		t.Errorf("Cache item cleanup not called on expiry")
+	}
+}

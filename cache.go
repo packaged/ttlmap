@@ -57,21 +57,26 @@ func (m CacheMap) MSet(data map[string]interface{}, duration time.Duration) {
 	for key, value := range data {
 		shard := m.GetShard(key)
 		shard.Lock()
-		shard.items[key] = newItem(value, duration, time.Now().Add(m.options.maxLifetime))
+		shard.items[key] = newItem(value, duration, time.Now().Add(m.options.maxLifetime), nil)
 		shard.Unlock()
 	}
 }
 
-// Sets the given value under the specified key
-func (m CacheMap) Set(key string, value interface{}, duration *time.Duration) {
+func (m CacheMap) SetWithCleanup(key string, value interface{}, duration *time.Duration, cleanup func(*Item)) {
 	// Get map shard.
 	shard := m.GetShard(key)
 	shard.Lock()
 	if duration == nil {
 		duration = &m.options.defaultCacheDuration
 	}
-	shard.items[key] = newItem(value, *duration, time.Now().Add(m.options.maxLifetime))
+	itm := newItem(value, *duration, time.Now().Add(m.options.maxLifetime), cleanup)
+	shard.items[key] = itm
 	shard.Unlock()
+}
+
+// Sets the given value under the specified key
+func (m CacheMap) Set(key string, value interface{}, duration *time.Duration) {
+	m.SetWithCleanup(key, value, duration, nil)
 }
 
 // Retrieves an item from the map with the given key, and optionally increase its expiry time if found
@@ -133,6 +138,10 @@ func (ms CacheMapShared) Remove(key string) {
 
 // Removes an element from the map
 func (ms CacheMapShared) remove(key string) {
+	if itm, ok := ms.items[key]; ok && itm.onDelete != nil {
+		itm.onDelete(itm)
+	}
+
 	delete(ms.items, key)
 }
 

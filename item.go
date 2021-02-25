@@ -12,13 +12,15 @@ type Item struct {
 	deadline time.Time
 	ttl      time.Duration
 	expires  *time.Time
+	onDelete func(*Item)
 }
 
-func newItem(value interface{}, duration time.Duration, deadline time.Time) *Item {
+func newItem(value interface{}, duration time.Duration, deadline time.Time, onDelete func(*Item)) *Item {
 	i := &Item{
 		data:     value,
 		ttl:      duration,
 		deadline: deadline,
+		onDelete: onDelete,
 	}
 	expiry := time.Now().Add(duration)
 	i.expires = &expiry
