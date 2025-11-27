@@ -30,13 +30,15 @@ func Fetch[T any](m CacheMap, key string, source func(string) (T, error)) (T, er
 
 		if !itm.isUpdating && itm.updateMutex.TryLock() {
 			itm.isUpdating = true
-			value, err := source(key)
-			if err == nil {
-				m.Set(key, value, nil)
-			}
-			itm.updateMutex.Unlock()
-			itm.isUpdating = false
-			return value, nil
+			go func() {
+				// Update in the background to avoid cache call slow downs
+				value, err := source(key)
+				if err == nil {
+					m.Set(key, value, nil)
+				}
+				itm.updateMutex.Unlock()
+				itm.isUpdating = false
+			}()
 		}
 
 		// Item has expired, but another thread is updateMutex

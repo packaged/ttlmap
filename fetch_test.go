@@ -111,3 +111,35 @@ func TestFetch_StaleWhileRevalidate(t *testing.T) {
 		t.Fatalf("expected refreshed value 2, got %d", v2)
 	}
 }
+
+func TestFetch_ZeroDelay(t *testing.T) {
+	cache := ttlmap.New(ttlmap.WithDefaultTTL(15*time.Millisecond), ttlmap.WithMaxLifetime(2*time.Second))
+	funcTime := 15 * time.Millisecond
+	funcTime = time.Millisecond * 100
+
+	ttl := 20 * time.Millisecond
+	cache.Set("sk", 1, &ttl)
+
+	src := func(key string) (int, error) {
+		time.Sleep(funcTime)
+		return time.Now().Second(), nil
+	}
+
+	wg := sync.WaitGroup{}
+	for i := 0; i < 1000; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			start := time.Now()
+			_, fetchErr := ttlmap.Fetch[int](cache, "sk", src)
+			if fetchErr != nil {
+				log.Print(fetchErr.Error())
+			}
+			if time.Since(start) >= funcTime-time.Millisecond {
+				log.Print("fetch took too long")
+			}
+		}()
+		time.Sleep(time.Millisecond)
+	}
+	wg.Wait()
+}
