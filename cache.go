@@ -14,7 +14,8 @@ type CacheMap struct {
 
 // A "thread" safe string to anything map
 type CacheMapShared struct {
-	shutdown     chan bool
+	shutdown     chan struct{}
+	ticker       *time.Ticker
 	cleanupCycle time.Duration
 	items        map[string]*Item
 	sync.RWMutex // Read Write mutex, guards access to internal map.
@@ -43,9 +44,20 @@ func (m CacheMap) Close() {
 	}
 }
 
-// Close stops the cleanup
-func (ms CacheMapShared) Close() {
-	ms.shutdown <- true
+// Close stops the cleanup background goroutine and ticker for this shard
+func (ms *CacheMapShared) Close() {
+	// Protect against double-close: close is safe only once; recover if already closed.
+	if ms.shutdown != nil {
+		select {
+		case <-ms.shutdown:
+			// already closed
+		default:
+			close(ms.shutdown)
+		}
+	}
+	if ms.ticker != nil {
+		ms.ticker.Stop()
+	}
 }
 
 // Returns shard under given key
@@ -130,14 +142,14 @@ func (m CacheMap) Remove(key string) {
 }
 
 // Removes an element from the map
-func (ms CacheMapShared) Remove(key string) {
+func (ms *CacheMapShared) Remove(key string) {
 	ms.Lock()
 	ms.remove(key)
 	ms.Unlock()
 }
 
 // Removes an element from the map
-func (ms CacheMapShared) remove(key string) {
+func (ms *CacheMapShared) remove(key string) {
 	if itm, ok := ms.items[key]; ok && itm.onDelete != nil {
 		itm.onDelete(itm)
 	}

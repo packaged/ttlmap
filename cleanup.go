@@ -26,15 +26,20 @@ func (ms *CacheMapShared) Cleanup() {
 }
 
 func (ms *CacheMapShared) initCleanup(dur time.Duration) {
-	ticker := time.Tick(dur)
-	go (func() {
+	// Initialize shutdown channel once
+	if ms.shutdown == nil {
+		ms.shutdown = make(chan struct{})
+	}
+	// Use NewTicker so we can Stop it later to avoid ticker leaks
+	ms.ticker = time.NewTicker(dur)
+	go func() {
 		for {
 			select {
 			case <-ms.shutdown:
 				return
-			case <-ticker:
+			case <-ms.ticker.C:
 				ms.Cleanup()
 			}
 		}
-	})()
+	}()
 }
