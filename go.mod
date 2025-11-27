@@ -1,3 +1,3 @@
 module github.com/packaged/ttlmap
 
-go 1.15
+go 1.20

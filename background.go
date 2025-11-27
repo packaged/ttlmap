@@ -35,6 +35,20 @@ func (km *keyMutex) Lock(key string) bool {
 	return true
 }
 
+// Wait blocks until the given key is unlocked by a prior Lock call.
+// It does not acquire the lock; callers typically call Get after waiting
+// or attempt to Lock again to become the next owner.
+func (km *keyMutex) Wait(key string) {
+	km.l.Lock()
+	for {
+		if _, ok := km.s[key]; !ok {
+			km.l.Unlock()
+			return
+		}
+		km.c.Wait()
+	}
+}
+
 func (m CacheMap) BackgroundUpdate(key string, updater func() (interface{}, error)) {
 	// Lock the key from writes
 	locked := backgroundMutex.Lock(key)

@@ -8,11 +8,13 @@ import (
 // Item represents a record in the map
 type Item struct {
 	sync.RWMutex
-	data     interface{}
-	deadline time.Time
-	ttl      time.Duration
-	expires  *time.Time
-	onDelete func(*Item)
+	updateMutex sync.RWMutex
+	isUpdating  bool
+	data        interface{}
+	deadline    time.Time
+	ttl         time.Duration
+	expires     *time.Time
+	onDelete    func(*Item)
 }
 
 func newItem(value interface{}, duration time.Duration, deadline time.Time, onDelete func(*Item)) *Item {
